@@ -6,22 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('memberships', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+       Schema::create('memberships', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+    $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
+    $table->string('role')->default('user');
+    $table->timestamp('joined_at')->nullable();
+    $table->timestamp('left_at')->nullable();
+    $table->timestamps();
+});
     }
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('memberships');
+        Schema::dropIfExists('Memberships');
     }
 };

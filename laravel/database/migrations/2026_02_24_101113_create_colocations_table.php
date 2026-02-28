@@ -5,17 +5,19 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up(): void {
+    public function up(): void
+    {
         Schema::create('colocations', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('status',['active','inactive'])->unique();
+            $table->enum('status', ['active', 'cancelled'])->default('active');
             $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });
     }
 
-    public function down(): void {
+    public function down(): void
+    {
         Schema::dropIfExists('colocations');
     }
 };
