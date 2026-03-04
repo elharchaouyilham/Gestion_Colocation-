@@ -34,7 +34,7 @@
         <div class="flex justify-between items-center mb-10">
             <h3 class="text-xl font-black text-slate-800 uppercase italic">
                 User Management
-            </h3>
+            </h3> 
         </div>
 
         <table class="w-full text-left">
@@ -77,48 +77,47 @@
                     {{-- Status Badge --}}
                     <td class="py-6">
                         @if($user->status === 'ban')
-                        <span class="text-[9px] font-black uppercase text-red-500 flex items-center gap-1.5 italic">
-                            <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                            Banned
-                        </span>
+                            <span class="text-[9px] font-black uppercase text-red-500 flex items-center gap-1.5 italic">
+                                <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                                Banned
+                            </span>
                         @else
-                        <span class="text-[9px] font-black uppercase text-emerald-500 flex items-center gap-1.5 italic">
-                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                            Active
-                        </span>
+                            <span class="text-[9px] font-black uppercase text-emerald-500 flex items-center gap-1.5 italic">
+                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                                Active
+                            </span>
                         @endif
                     </td>
 
                     {{-- Actions --}}
                     <td class="py-6 text-right">
 
-                        {{-- Protect current logged-in user OR any admin --}}
-                        @if(auth()->id() === $user->id || $user->role_id === 1)
-                        <button
-                            class="text-[9px] font-black uppercase px-4 py-2 rounded-xl bg-slate-50 text-slate-300 border border-slate-100 italic cursor-not-allowed">
-                            Protected
-                        </button>
+                        {{-- Prevent self-ban --}}
+                        @if(auth()->id() === $user->id)
+                            <button class="text-[9px] font-black uppercase px-4 py-2 rounded-xl bg-slate-50 text-slate-300 border border-slate-100 italic cursor-not-allowed">
+                                Protected
+                            </button>
                         @else
 
-                        @if($user->status === 'ban')
-                        <form method="POST" action="{{ route('admin.unban', $user->id) }}">
-                            @csrf
-                            @method('PUT')
-                            <button type="submit"
-                                class="text-[9px] font-black uppercase px-4 py-2 rounded-xl bg-emerald-50 text-emerald-500 border border-emerald-100 italic hover:bg-emerald-100 transition">
-                                Activate
-                            </button>
-                        </form>
-                        @else
-                        <form method="POST" action="{{ route('admin.ban', $user->id) }}">
-                            @csrf
-                            @method('PUT')
-                            <button type="submit"
-                                class="text-[9px] font-black uppercase px-4 py-2 rounded-xl bg-red-50 text-red-500 border border-red-100 italic hover:bg-red-100 transition">
-                                Ban
-                            </button>
-                        </form>
-                        @endif
+                            @if($user->status === 'ban')
+                                <form method="POST" action="{{ route('admin.unban', $user->id) }}">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit"
+                                        class="text-[9px] font-black uppercase px-4 py-2 rounded-xl bg-emerald-50 text-emerald-500 border border-emerald-100 italic hover:bg-emerald-100 transition">
+                                        Activate
+                                    </button>
+                                </form>
+                            @else
+                                <form method="POST" action="{{ route('admin.ban', $user->id) }}">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit"
+                                        class="text-[9px] font-black uppercase px-4 py-2 rounded-xl bg-red-50 text-red-500 border border-red-100 italic hover:bg-red-100 transition">
+                                        Ban
+                                    </button>
+                                </form>
+                            @endif
 
                         @endif
 

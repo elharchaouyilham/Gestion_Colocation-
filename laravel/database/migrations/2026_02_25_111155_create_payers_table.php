@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::create('payers', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
-    $table->foreignId('reciever_id')->constrained('users')->cascadeOnDelete();
-    $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-    $table->decimal('montant', 10, 2);
-    $table->timestamp('paid_at')->nullable();
-    $table->timestamps();
-});
+        Schema::create('payers', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('reciever_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
+            $table->decimal('montant', 10, 2);
+            $table->timestamp('paid_at')->nullable();
+            $table->timestamps();
+        });
     }
 
 

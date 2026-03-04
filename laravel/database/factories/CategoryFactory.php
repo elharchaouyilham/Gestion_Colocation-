@@ -3,12 +3,12 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Categorie;
+use App\Models\Category;
 use App\Models\Colocation;
 
 class CategoryFactory extends Factory
 {
-    protected $model = Categorie::class;
+    protected $model = Category::class;
 
     public function definition(): array
     {

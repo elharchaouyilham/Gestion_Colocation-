@@ -3,38 +3,38 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Expense extends Model
 {
-    use HasFactory;
-
-    protected $fillable = [
-        'title',
-        'amount',
-        'date',
-        'payer_id',
-        'category_id',
-        'colocation_id'
-    ];
+    protected $fillable = ['title', 'amount', 'date', 'payer_id', 'categorie_id', 'colocation_id'];
 
     protected $casts = [
+        'amount' => 'decimal:2',
         'date' => 'date',
-        'amount' => 'decimal:2'
     ];
 
-    public function payer()
+    public function colocation(): BelongsTo
+    {
+        return $this->belongsTo(Colocation::class);
+    }
+
+    // The person who fronted the money
+    public function payer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'payer_id');
     }
 
-    public function categorie()
+    // Assumes you have a Category model based on 'categorie_id'
+    public function category(): BelongsTo
     {
-        return $this->belongsTo(Categorie::class);
+        return $this->belongsTo(Category::class, 'categorie_id');
     }
 
-    public function colocation()
+    // The people who owe a split of this expense
+    public function sharedPayers(): HasMany
     {
-        return $this->belongsTo(Colocation::class);
+        return $this->hasMany(Payer::class);
     }
 }

@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-       Schema::create('memberships', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
-    $table->string('role')->default('user');
-    $table->timestamp('joined_at')->nullable();
-    $table->timestamp('left_at')->nullable();
-    $table->timestamps();
-});
+        Schema::create('memberships', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
+            $table->enum('role',['member','owner'])->default('member');
+            $table->timestamp('joined_at')->nullable();
+            $table->timestamp('left_at')->nullable();
+            $table->timestamps();
+        });
     }
     public function down(): void
     {

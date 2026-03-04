@@ -3,37 +3,24 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payer extends Model
 {
-    use HasFactory;
-
-    protected $fillable = [
-        'sender_id',
-        'reciever_id',
-        'colocation_id',
-        'montant',
-        'paid_at'
-    ];
+    protected $fillable = ['expense_id', 'user_id', 'montant', 'paid_at'];
 
     protected $casts = [
+        'montant' => 'decimal:2',
         'paid_at' => 'datetime',
-        'montant' => 'decimal:2'
     ];
 
-    public function fromUser()
+    public function expense(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(Expense::class);
     }
 
-    public function toUser()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'reciever_id');
-    }
-
-    public function colocation()
-    {
-        return $this->belongsTo(Colocation::class);
+        return $this->belongsTo(User::class);
     }
 }

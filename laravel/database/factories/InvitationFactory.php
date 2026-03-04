@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use App\Models\Invitation;
 use App\Models\Colocation;
+use App\Models\User;
 
 class InvitationFactory extends Factory
 {
@@ -15,7 +16,6 @@ class InvitationFactory extends Factory
     {
         return [
             'email' => $this->faker->safeEmail(),
-            'token' => Str::uuid(),
             'status' => 'pending',
             'colocation_id' => Colocation::factory(),
         ];
