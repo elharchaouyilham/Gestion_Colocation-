@@ -1,58 +1,66 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\UserController;
-
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ColocationController;
+use App\Http\Controllers\ExpenseController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {});
-Route::get('/dashboard', [AdminController::class, 'dashboard'])
-    ->name('admin.dashboard');
-Route::put('dashboard/{user}/unban', [AdminController::class, 'unban'])
-    ->name('admin.unban');
-Route::put('dashboard/{user}/ban', [AdminController::class, 'ban'])
-    ->name('admin.ban');
-
-
-
-Route::middleware(['auth'])->prefix('user')->group(function () {});
-
-    Route::get('/userr', [UserController::class, 'index'])
-        ->name('user.dashboard');
-
-    Route::get('/colocation', [UserController::class, 'store'])
-        ->name('user.colocation.store');
-
-    Route::POST('/invitation/{id}/accept', [UserController::class, 'accept'])
-        ->name('user.invitation.accept');
-
-    Route::POST('/invitation/{id}/refuse', [UserController::class, 'refuse'])
-        ->name('user.invitation.refuse');
-
-    Route::get('/leave', [UserController::class, 'leave'])
-        ->name('user.leave');
-
-
-
-
-
-
-
-
-
-
-
-
+require __DIR__ . '/auth.php';
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
-require __DIR__ . '/auth.php';
+    // Profile
+    Route::controller(ProfileController::class)->group(function () {
+        Route::get('/profile', 'edit')->name('profile.edit');
+        Route::patch('/profile', 'update')->name('profile.update');
+        Route::delete('/profile', 'destroy')->name('profile.destroy');
+    });
+
+    // Admin Panel
+    Route::middleware(['admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::controller(AdminController::class)->group(function () {
+            Route::get('/dashboard', 'dashboard')->name('dashboard');
+            Route::put('/users/{user}/ban', 'ban')->name('ban');
+            Route::put('/users/{user}/unban', 'unban')->name('unban');
+        });
+    });
+
+    // User Space
+    Route::prefix('user')->name('user.')->group(function () {
+
+        // Dashboard
+        Route::get('/dashboard', [UserController::class, 'index'])->name('dashboard');
+
+        // Colocation
+        Route::controller(ColocationController::class)->group(function () {
+            Route::post('/colocation', 'store')->name('colocation.store');
+            Route::post('/colocation/{colocation}/leave', 'leave')->name('leave');
+            Route::post('/colocation/{colocation}/cancel', 'cancel')->name('cancel');
+        });
+
+        // Invitations
+        Route::controller(InvitationController::class)->prefix('invitations')->name('invitation.')->group(function () {
+            Route::post('/send', 'send')->name('send');
+            Route::post('/{id}/accept', 'accept')->name('accept');
+            Route::post('/{id}/refuse', 'refuse')->name('refuse');
+        });
+
+        // Categories
+        Route::resource('categories', CategoryController::class)->only(['store', 'destroy']);
+
+        Route::controller(ExpenseController::class)->prefix('expenses')->name('expenses.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::delete('/{expense}', 'destroy')->name('destroy');
+            Route::post('/{expense}/payment', 'payment')->name('payment');
+        });
+    });
+});

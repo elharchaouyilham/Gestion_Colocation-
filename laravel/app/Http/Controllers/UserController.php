@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Colocation;
 use App\Models\Invitation;
 use App\Models\Membership;
+use App\Models\Category;
+use App\Models\Expense;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class UserController extends Controller
 {
-
-    public function index()
+    public function index(): View
     {
         $user = Auth::user();
 
-        $membership = Membership::where('user_id', $user->id)
-            ->with('colocation')
+        $membership = Membership::with('colocation')
+            ->where('user_id', $user->id)
+            ->whereNull('left_at')
             ->first();
 
         $invitations = Invitation::where('email', $user->email)
@@ -24,82 +25,43 @@ class UserController extends Controller
             ->with('colocation')
             ->get();
 
-        return view('user.dashboard', compact('membership', 'invitations'));
-    }
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
+        $categories = collect();
+        $totalSpent = 0;
+        $balances = collect();
 
-        $user = Auth::user();
+        if ($membership) {
+            $colocationId = $membership->colocation_id;
 
-        $alreadyMember = Membership::where('user_id', $user->id)->exists();
+            $categories = Category::where('colocation_id', $colocationId)->get();
 
-        if ($alreadyMember) {
-            return back()->with('error', 'Vous êtes déjà dans une colocation.');
+            $totalSpent = Expense::where('colocation_id', $colocationId)->sum('amount');
+
+            $members = Membership::where('colocation_id', $colocationId)
+                ->whereNull('left_at')
+                ->get();
+
+            $memberCount = $members->count();
+
+            $fairShare = $memberCount > 0 ? ($totalSpent / $memberCount) : 0;
+
+            $balances = $members->map(function ($m) use ($colocationId, $fairShare) {
+                $userPaid = Expense::where('colocation_id', $colocationId)
+                    ->where('payer_id', $m->user_id)
+                    ->sum('amount');
+
+                return [
+                    'user_id' => $m->user_id,
+                    'balance' => $userPaid - $fairShare
+                ];
+            });
         }
 
-        $colocation = Colocation::create([
-            'name' => $request->name,
-            'status' => 'active',
-            'owner_id' => $user->id
-        ]);
-        Membership::create([
-            'user_id' => $user->id,
-            'colocation_id' => $colocation->id,
-            'role' => 'owner',
-            'joined_at' => now()
-        ]);
-
-        return back()->with('success', 'Colocation créée. Vous êtes le propriétaire.');
-    }
-
-    public function accept($id)
-    {
-        $user = Auth::user();
-        if (Membership::where('user_id', $user->id)->exists()) {
-            return back()->with('error', 'Vous êtes déjà dans une colocation.');
-        }
-
-        $invitation = Invitation::where('id', $id)
-            ->where('email', $user->email)
-            ->where('status', 'pending')
-            ->firstOrFail();
-
-        $invitation->update(['status' => 'accepted']);
-
-        Membership::create([
-            'user_id' => $user->id,
-            'colocation_id' => $invitation->colocation_id,
-            'role' => 'member',
-            'joined_at' => now()
-        ]);
-
-        return back()->with('success', 'Invitation acceptée.');
-    }
-
-    public function refuse($id)
-    {
-        $invitation = Invitation::where('id', $id)
-            ->where('email', Auth::user()->email)
-            ->where('status', 'pending')
-            ->firstOrFail();
-
-        $invitation->update(['status' => 'refused']);
-
-        return back()->with('success', 'Invitation refusée.');
-    }
-
-    public function leave()
-    {
-        $membership = Membership::where('user_id', Auth::id())->firstOrFail();
-        if ($membership->role === 'owner') {
-            return back()->with('error', 'Le propriétaire ne peut pas quitter sa colocation.');
-        }
-
-        $membership->delete();
-
-        return back()->with('success', 'Vous avez quitté la colocation.');
+        return view('user.dashboard', compact(
+            'membership',
+            'invitations',
+            'categories',
+            'totalSpent',
+            'balances'
+        ));
     }
 }

@@ -12,9 +12,8 @@ return new class extends Migration {
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->boolean('is_admin')->default(false);
             $table->integer('reputation')->default(0);
-            $table->enum('status',['active','ban'])->default('active');
+            $table->enum('status', ['active', 'ban'])->default('active');
             $table->timestamp('banned_at')->nullable();
             $table->foreignId('role_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
